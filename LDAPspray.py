@@ -57,11 +57,21 @@ logging.debug(f'List of passwords gathered, there are {len(passwords)} passwords
 
 print('\n' + Fore.WHITE + Back.RED + f'***YOU ARE RESPONSIBLE FOR YOUR OWN ACTIONS USING THIS TOOL!***')
 print('')
+
+totalAttacks = len(users) * len(passwords)
 t = localtime()
-print(f'[{asctime(t)}]-' + Fore.RED + f'[!] THIS WILL ATTEMPT {len(users) * len(passwords)} TOTAL ATTACKS, ARE YOU SURE?')
+print(f'[{asctime(t)}]-' + Fore.RED + f'[!] THIS WILL ATTEMPT {totalAttacks} TOTAL ATTACKS, ARE YOU SURE?')
+print(f'[{asctime(t)}]-' + Fore.RED + f'[!] Enter the total number of attacks to proceed.')
+
 t = localtime()
-ans = input(f'[{asctime(t)}]-' + Fore.CYAN + '(y/n) > ' + Fore.RESET).lower()
-if ans != 'y':
+ans = input(f'[{asctime(t)}]-' + Fore.CYAN + f'({totalAttacks}) > ' + Fore.RESET)
+
+try:
+    ans = int(ans)
+except ValueError:
+    exit(Fore.MAGENTA + f"'{ans}' is not a number. I'm out." + Fore.RESET)
+
+if ans != totalAttacks:
     exit(Fore.MAGENTA + f'Quitting, make up your mind!' + Fore.RESET)
 
 atmptCount = 0
