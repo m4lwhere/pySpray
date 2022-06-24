@@ -1,8 +1,12 @@
 # pySpray
 
-Lockout number and window aware password spraying tool.
+## Lockout number and window aware password spraying tool.
 
 This project was built out of necessity while looking for password spraying tools that take spraying limitations into account.
+
+![Running the Program](LDAPspray_screenshot.png)
+
+This ensures that running a password spray attack will stay below the lockout window.
 
 ```
 usage: LDAPspray.py [-h] -U USERS -P PASSWORDS -D DOMAIN -S SERVER -L LOCKOUT -W WINDOW [-v] [--debug]
