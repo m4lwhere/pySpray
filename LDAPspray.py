@@ -57,9 +57,16 @@ def authAttempt(server, domain, user, passwd):
 
 # Gracefully handle CTRL-C within the program, allow users to change mind
 def signal_handler(signal, frame):
+    global successDict
     print('')
     ans = input(f'[{asctime(t)}]-' + Fore.RED + f'[!] CTRL-C detected, do you want to quit? (Y/N) > ' + Fore.RESET)
     if ans.lower() == 'y':
+        if len(successDict) == 0:
+            print(f'[{asctime(t)}]-' + Fore.RED + f'[!] No Creds found, quitting!' + Fore.RESET)
+            sys.exit(0)
+        print(f'[{asctime(t)}]-' + Fore.GREEN + f'[+] Gathered creds below...' + Fore.RESET)
+        for username, password in successDict.items():
+            print(f'[{asctime(t)}]-' + Fore.GREEN + f'[+] {username}:{password}')
         print(f'[{asctime(t)}]-' + Fore.RED + f'[!] Quitting!' + Fore.RESET)
         sys.exit(0)
     else:
