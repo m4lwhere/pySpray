@@ -1,3 +1,5 @@
 create kerberos module
+    - Check for valid usernames
+    - Use rpcclient in a direct shell command?
 support ssl/tls for ldap
 build logging 
