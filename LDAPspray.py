@@ -72,6 +72,7 @@ def signal_handler(signal, frame):
     else:
         print(f'[{asctime(t)}]-' + Fore.CYAN + f'[+] Continuing...' + Fore.RESET)
 
+# Catch CTRL+C and send it to our signal_handler function
 signal.signal(signal.SIGINT, signal_handler)
 
 logging.debug('Gathering list of users')
