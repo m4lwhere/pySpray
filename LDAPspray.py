@@ -1,9 +1,8 @@
 from ldap3 import Server, Connection, ALL, NTLM
-import logging, argparse
+import logging, argparse, signal, sys
 from colorama import Fore, Back, init
 from time import sleep, asctime, localtime
-import signal
-import sys
+from pathlib import Path
 
 # Auto-reset Colorama colors
 init(autoreset=True)
@@ -18,6 +17,7 @@ parser.add_argument("-D","--Domain", help="Domain used in authentication", requi
 parser.add_argument("-S","--Server", help="IP/Hostname of LDAP Server used in authentication", required=True)
 parser.add_argument("-L","--Lockout", help="Lockout threshold of bad passwords, inclusive number", type=int, required=True)
 parser.add_argument("-W","--Window", help="Window of time before lockout counter resets (in MINUTES)", type=int, required=True)
+parser.add_argument("-o","--output", help="Output file for activity", type=str)
 parser.add_argument("-v","--verbose", help="List all authentication attempts", action="store_true")
 parser.add_argument("--debug", help="Debug activity", action="store_true")
 args = parser.parse_args()
