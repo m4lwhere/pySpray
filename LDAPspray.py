@@ -2,7 +2,7 @@ from ldap3 import Server, Connection, ALL, NTLM
 import logging, argparse, signal, sys
 from colorama import Fore, Back, init
 from time import sleep, asctime, localtime
-from pathlib import Path
+from os import path
 
 # Auto-reset Colorama colors
 init(autoreset=True)
@@ -28,6 +28,18 @@ if not args.debug:
 
 logging.debug('Stating program')
 
+# Check if we're recording output, and if the file exists or not
+if args.output:
+    try:
+        if path.exists(args.output):
+            logging.debug(f'Path for {args.output} exists and is a file for output.')
+
+        else:
+            logging.debug(f'Path for {args.output} does not exist and a file will be created.')
+    except:
+        logging.debug(f'Some major issue with {args.output}.')
+
+
 # Function to read a file and return each line as an item in a list
 def loadContents(file):
     with open(file) as f:
@@ -35,6 +47,7 @@ def loadContents(file):
         clean = [ line.strip() for line in readList ]
     logging.debug(f'Reading the {file} as values {clean}')
     return clean
+
 
 # Attempt to authenticate on LDAP
 def authAttempt(server, domain, user, passwd):
@@ -55,6 +68,7 @@ def authAttempt(server, domain, user, passwd):
             print(f'[{asctime(t)}]-' + Fore.GREEN + f'[+] Authenticated as {a}:{c.extend.microsoft._connection.password}')
             return True
 
+
 # Gracefully handle CTRL-C within the program, allow users to change mind
 def signal_handler(signal, frame):
     global successDict
@@ -71,6 +85,7 @@ def signal_handler(signal, frame):
         sys.exit(0)
     else:
         print(f'[{asctime(t)}]-' + Fore.CYAN + f'[+] Continuing...' + Fore.RESET)
+
 
 # Catch CTRL+C and send it to our signal_handler function
 signal.signal(signal.SIGINT, signal_handler)
