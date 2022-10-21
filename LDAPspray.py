@@ -50,7 +50,7 @@ def loadContents(file):
 
 # Function to write to a file
 def writeFile(msg, file):
-    with open(file) as f:
+    with open(file, 'w') as f:
         f.write(f"{msg}\n")
         logging.debug(f"Wrote the following info {msg} to file {file}")
 
@@ -129,7 +129,7 @@ logging.debug(f'Lockout number is {args.Lockout} and type {type(args.Lockout)}')
 if args.output:
     t = localtime()
     writeFile(f"Started attack at {asctime(t)} using Users file {args.Users} and password file {args.Passwords}.", args.output)
-    writeFile(f"Attacking {args.Domain} and server {args.Server} with {args.Lockout} attempts every {args.Window * 60} minutes.", args.output)
+    writeFile(f"Attacking {args.Domain} and server {args.Server} with {args.Lockout} attempts every {args.Window} minutes.", args.output)
 
 for pwd in passwords:
     logging.debug(f'Attempting login with attempt count {atmptCount}')
