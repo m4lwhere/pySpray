@@ -154,6 +154,6 @@ for pwd in passwords:
 
 print(f'[{getTimestamp()}]-' + Fore.CYAN + f'[*] Completed {len(users) * len(passwords)} total attempts')
 if args.output:
-    writeFile(f"[{getTimestamp()}]- Completed attack")
+    writeFile(f"[{getTimestamp()}]- Completed attack", args.output)
 
         
